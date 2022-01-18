@@ -168,6 +168,7 @@ class BoardWindow(FramelessWindow):
     def on_game_result(self, message):
         self.timer.stop()
         self.info_widget.set_player_turn(message)
+        self.auto_player_checkbox.setChecked(False)
         self.show_info_dialog(message)
 
     @Slot()

@@ -2,23 +2,23 @@
 This module contains the AutoPlayer class.
 Object is instantiated once per game and it is kept in separate thread.
 When it is player turn, client emits calculate_move signal,
-what makes AutoPlayer calculate the best move and send it to the server
+what makes AutoPlayer calculate the best move and send it to the main thread
 using make_move signal.
-
-__doc__ were removed from Node class to reduce deepcopy() time
 """
 
 from qtpy.QtCore import QObject, Slot, Signal, QThread, QDateTime
 
-import copy
 import random
 import logging
 
 _CAUTOPLAYER_IMPORTED = True
 try:
     import CAutoPlayer
+
+    logging.debug("Using C++ AutoPlayer")
 except ImportError:
     _CAUTOPLAYER_IMPORTED = False
+    logging.debug("Using Python AutoPlayer")
 
 
 class Node:
@@ -29,8 +29,15 @@ class Node:
         self.game_over = False
         self.children: dict[int, Node] = {}
         self.player_ranges = (range(0, len(board) // 2 - 1), range(len(board) // 2, len(board) - 1))
+    __slots__ = ("board", "player", "player_ranges", "game_over", "children")
 
-    __slots__ = ('board', 'player', 'player_ranges', 'game_over', 'children')
+
+# methods are outside of the class to reduce
+def copy(self) -> 'Node':
+    node = Node(self.board.copy(), self.player)
+    node.game_over = self.game_over
+    node.player_ranges = self.player_ranges
+    return node
 
 
 def make_move(self, pit_index):
@@ -84,9 +91,8 @@ class AutoPlayer(QObject):
         start_time = QDateTime.currentSecsSinceEpoch()
 
         if _CAUTOPLAYER_IMPORTED:
-            logging.debug("Using C++ AutoPlayer")
             index = CAutoPlayer.calculate_move(board, maximizing_player, self.minimax_depth,
-                                                not self.no_alpha_beta,self.iterative_deepening)
+                                               not self.no_alpha_beta, self.iterative_deepening)
         else:
             node = Node(board, maximizing_player)
             if self.minimax_depth > 0:
@@ -102,32 +108,12 @@ class AutoPlayer(QObject):
             if QDateTime.currentSecsSinceEpoch() - start_time < self.auto_play_delay:
                 QThread.sleep(self.auto_play_delay - (QDateTime.currentSecsSinceEpoch() - start_time))
 
+        print(index)
         if self.stopped:
             self.stopped = False
         else:
             if index != -1:
                 self.make_move.emit(index)
-
-        # node = Node(board, maximizing_player)
-        #
-        # if self.minimax_depth > 0:
-        #     if self.iterative_deepening:
-        #         util, index = self._iterative_minimax(node, maximizing_player)
-        #     else:
-        #         util, index = self._minimax(node, maximizing_player, float("-inf"), float("+inf"), self.minimax_depth)
-        # else:
-        #     index = random.choice([i for i in node.player_ranges[maximizing_player] if board[i] > 0])
-        #
-        # if self.auto_play_delay > 0:
-        #     if QDateTime.currentSecsSinceEpoch() - start_time < self.auto_play_delay:
-        #         QThread.sleep(self.auto_play_delay - (QDateTime.currentSecsSinceEpoch() - start_time))
-        #
-        # if self.stopped:
-        #     self.stopped = False
-        # else:
-        #     if index != -1:
-        #         self.make_move.emit(index)
-        # del node
 
     @Slot(Node, int, float, float, int)
     def _iterative_minimax(self, root: Node, maximizing_player: int) -> (int, int):
@@ -151,10 +137,10 @@ class AutoPlayer(QObject):
             return (node.board[int(len(node.board) / (2 - maximizing_player)) - 1] -
                     node.board[int(len(node.board) / (2 - abs(1 - maximizing_player))) - 1], -1)
 
-        initial_state = copy.deepcopy(node)
+        initial_state = copy(node)
         for pit_index in node.player_ranges[node.player]:
             if pit_index not in node.children and node.board[pit_index] != 0:
-                child = copy.deepcopy(initial_state)
+                child = copy(initial_state)
                 make_move(child, pit_index)
                 node.children[pit_index] = child
         del initial_state

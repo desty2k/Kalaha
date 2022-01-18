@@ -85,19 +85,12 @@ static BestMove calculate_minimax(CNode *node, int maximizing_player, int alpha_
 static BestMove calculate_iterative_deepening(CNode *node, int maximizing_player, int alpha_beta, int minimax_depth) {
     // vector of moves
     minimax_depth += 1;
-    std::vector<BestMove> moves{};
-    moves.reserve(minimax_depth);
-    for (int i = 0; i < minimax_depth; i++) {
-        BestMove move = calculate_minimax(node, maximizing_player, alpha_beta, INT_MIN, INT_MAX, i);
-        moves.push_back(move);
-    }
-    // get best move
     BestMove best_move{};
     best_move.index = -1;
     best_move.util = INT_MIN;
     for (int i = 0; i < minimax_depth; i++) {
         BestMove move = calculate_minimax(node, maximizing_player, alpha_beta, INT_MIN, INT_MAX, i);
-        if (move.util > best_move.util) {
+        if (move.index != -1 && move.util > best_move.util) {
             best_move = move;
         }
     }
@@ -182,7 +175,7 @@ static PyMethodDef module_methods[] = {
 static struct PyModuleDef module_definition = {
     PyModuleDef_HEAD_INIT,
     "CAutoPlayer",
-    "A Python module that prints 'hello world' from C code.",
+    "A Python extension module for Kalaha game AutoPlayer",
     0,
     module_methods,
 };

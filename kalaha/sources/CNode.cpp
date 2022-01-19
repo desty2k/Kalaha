@@ -25,15 +25,16 @@ void CNode::make_move(int pit_index) {
         pit_index = (pit_index + 1) % board.size();
         board[pit_index]++;
     }
+    // last stone in player's base, do not change player
     if (pit_index != (board.size() / (2 - player) - 1)) {
         if (board[pit_index] == 1) {
             int opposite_hole_index = board.size() - 2 - pit_index;
-            if (std::count(players_ranges[player].begin(), players_ranges[player].end(), pit_index)) {
+            if (std::find(players_ranges[player].begin(), players_ranges[player].end(), pit_index) != players_ranges[player].end()) {
                 board[(board.size()) / (2 - player) - 1] += board[opposite_hole_index];
                 board[opposite_hole_index] = 0;
             }
         }
-        this->player = (player + 1) % 2;
+        player = (player + 1) % 2;
     }
 
      int sum_player_one = 0;
@@ -49,11 +50,11 @@ void CNode::make_move(int pit_index) {
      if (sum_player_one == 0 || sum_player_two == 0) {
          board[(board.size() / 2) - 1] += sum_player_one;
          board[(board.size() - 1)] += sum_player_two;
-         for (int i = 0; i < this->players_ranges[0].size(); i++) {
-             board[this->players_ranges[0][i]] = 0;
+         for (int i = 0; i < players_ranges[0].size(); i++) {
+             board[players_ranges[0][i]] = 0;
          }
-         for (int i = 0; i < this->players_ranges[1].size(); i++) {
-             board[this->players_ranges[1][i]] = 0;
+         for (int i = 0; i < players_ranges[1].size(); i++) {
+             board[players_ranges[1][i]] = 0;
          }
          game_over = true;
      }
@@ -68,7 +69,7 @@ int CNode::get_player() {
 }
 
 int CNode::get_utility(int maximizing_player) {
-    return board[(board.size() / (2 - maximizing_player)) - 1] - board[board.size() / (2 - ((player + 1) % 2)) - 1];
+    return board[(board.size() / (2 - maximizing_player)) - 1] - board[board.size() / (2 - ((maximizing_player + 1) % 2)) - 1];
 }
 
 std::map<int, CNode *> CNode::get_children() {
@@ -79,8 +80,8 @@ void CNode::add_child(int pit_index, CNode *cnode) {
     children[pit_index] = cnode;
 }
 
-void CNode::set_players_ranges(std::array<std::vector<int>, 2> players_ranges) {
-    this->players_ranges = std::move(players_ranges);
+void CNode::set_players_ranges(std::array<std::vector<int>, 2> new_ranges) {
+    players_ranges = std::move(new_ranges);
 }
 
 std::array<std::vector<int>, 2> CNode::get_players_ranges() {

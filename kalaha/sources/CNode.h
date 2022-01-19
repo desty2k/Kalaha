@@ -1,6 +1,3 @@
-#ifndef UNTITLED_CNODE_H
-#define UNTITLED_CNODE_H
-
 #include <vector>
 #include <array>
 #include <map>
@@ -18,17 +15,16 @@ public:
     CNode(const CNode &node);
     CNode(std::vector<int> board, int player);
     ~CNode() {for (auto & it : children) delete it.second;}
+
     void make_move(int pit_index);
-    bool is_game_over();
-    int get_player();
-    std::map<int, CNode*> get_children();
-    std::vector<int> get_board();
-    int get_utility(int player);
-
-    void set_players_ranges(std::array<std::vector<int>, 2> players_ranges);
-    std::array<std::vector<int>, 2> get_players_ranges();
     void add_child(int pit_index, CNode *cnode);
+    void set_players_ranges(std::array<std::vector<int>, 2> new_ranges);
+
+    int get_player();
+    int get_utility(int player);
+    bool is_game_over();
+
+    std::vector<int> get_board();
+    std::map<int, CNode*> get_children();
+    std::array<std::vector<int>, 2> get_players_ranges();
 };
-
-
-#endif //UNTITLED_CNODE_H

@@ -11,13 +11,13 @@ from qtpy.QtCore import QObject, Slot, Signal, QThread, QDateTime
 import random
 import logging
 
-_CAUTOPLAYER_IMPORTED = True
+_CMINIMAX_IMPORTED = True
 try:
-    import CAutoPlayer
+    import CMinimax
 
     logging.debug("Using C++ AutoPlayer")
 except ImportError:
-    _CAUTOPLAYER_IMPORTED = False
+    _CMINIMAX_IMPORTED = False
     logging.debug("Using Python AutoPlayer")
 
 
@@ -59,7 +59,7 @@ def make_move(self, pit_index):
         self.player = (self.player + 1) % 2
 
     # check if game is over
-    if any(sum([stones for stones in self.player_ranges[player]]) == 0 for player in (0, 1)):
+    if any(sum([self.board[index] for index in self.player_ranges[player]]) == 0 for player in (0, 1)):
         for player in (0, 1):
             self.board[(len(self.board) // (2 - player)) - 1] += sum(
                 [self.board[i] for i in self.player_ranges[player]])
@@ -90,9 +90,9 @@ class AutoPlayer(QObject):
     def on_calculate_move(self, board: list[int], maximizing_player: int):
         start_time = QDateTime.currentSecsSinceEpoch()
 
-        if _CAUTOPLAYER_IMPORTED:
-            index = CAutoPlayer.calculate_move(board, maximizing_player, self.minimax_depth,
-                                               not self.no_alpha_beta, self.iterative_deepening)
+        if _CMINIMAX_IMPORTED:
+            index = CMinimax.run(board, maximizing_player, self.minimax_depth,
+                                 not self.no_alpha_beta, self.iterative_deepening)
         else:
             node = Node(board, maximizing_player)
             if self.minimax_depth > 0:
@@ -108,7 +108,6 @@ class AutoPlayer(QObject):
             if QDateTime.currentSecsSinceEpoch() - start_time < self.auto_play_delay:
                 QThread.sleep(self.auto_play_delay - (QDateTime.currentSecsSinceEpoch() - start_time))
 
-        print(index)
         if self.stopped:
             self.stopped = False
         else:
@@ -117,13 +116,14 @@ class AutoPlayer(QObject):
 
     @Slot(Node, int, float, float, int)
     def _iterative_minimax(self, root: Node, maximizing_player: int) -> (int, int):
-        moves = []
-        for i in range(self.minimax_depth + 1):
-            util, index = self._minimax(root, maximizing_player, float("-inf"), float("+inf"), i)
-            if index != -1:
-                moves.append((util, index))
-        best = max(moves, key=lambda x: x[0])
-        return best
+        best_util = float("-inf")
+        best_index = -1
+        for depth in range(1, self.minimax_depth + 1):
+            util, index = self._minimax(root, maximizing_player, float("-inf"), float("+inf"), depth)
+            if index != -1 and util > best_util:
+                best_util = util
+                best_index = index
+        return best_util, best_index
 
     @Slot()
     def _stop(self) -> None:
@@ -135,28 +135,26 @@ class AutoPlayer(QObject):
             return 0, -1
         if node.game_over or depth == 0:
             return (node.board[int(len(node.board) / (2 - maximizing_player)) - 1] -
-                    node.board[int(len(node.board) / (2 - abs(1 - maximizing_player))) - 1], -1)
+                    node.board[int(len(node.board) / (2 - ((maximizing_player + 1) % 2))) - 1], -1)
 
-        initial_state = copy(node)
         for pit_index in node.player_ranges[node.player]:
             if pit_index not in node.children and node.board[pit_index] != 0:
-                child = copy(initial_state)
+                child = copy(node)
                 make_move(child, pit_index)
                 node.children[pit_index] = child
-        del initial_state
 
-        best_i = -1
+        best_index = -1
         if node.player == maximizing_player:
             max_value = float("-inf")
             for i, child in node.children.items():
                 eval = self._minimax(child, maximizing_player, alpha, beta, depth - 1)[0]
                 if eval >= max_value:
                     max_value = eval
-                    best_i = i
+                    best_index = i
                 alpha = max(alpha, eval)
                 if not self.no_alpha_beta and beta <= alpha:
                     break
-            return max_value, best_i
+            return max_value, best_index
 
         else:
             min_value = float("+inf")
@@ -164,8 +162,8 @@ class AutoPlayer(QObject):
                 eval = self._minimax(child, maximizing_player, alpha, beta, depth - 1)[0]
                 if eval <= min_value:
                     min_value = eval
-                    best_i = i
+                    best_index = i
                 beta = min(beta, eval)
                 if not self.no_alpha_beta and beta <= alpha:
                     break
-            return min_value, best_i
+            return min_value, best_index

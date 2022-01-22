@@ -11,7 +11,7 @@ struct Move {
 };
 
 
-static std::array<std::vector<int>, 2> get_available_indexes(std::vector<int> board) {
+static std::array<std::vector<int>, 2> get_available_indexes(const std::vector<int>& board) {
     std::array<std::vector<int>, 2> available_indexes{};
     for (int i = 0; i < (board.size() / 2) - 1; i++) {
         available_indexes[0].push_back(i);
@@ -31,12 +31,8 @@ static Move calculate_minimax(CNode *node, int maximizing_player, int alpha_beta
         return move;
     }
 
-    // make copy of node
-//    auto* node_copy = new CNode(*node);
-
     // get players ranges
     auto players_ranges = node->get_players_ranges();
-
     for (int pit_index : players_ranges[node->get_player()]) {
         // for each pit, if it is not empty and child is not yet created, create it and make move
         if (node->get_board()[pit_index] != 0 && node->get_children().count(pit_index) == 0) {
@@ -45,7 +41,6 @@ static Move calculate_minimax(CNode *node, int maximizing_player, int alpha_beta
             node->add_child(pit_index, child);
         }
     }
-//    delete node_copy;
 
     int best_index = -1;
     if (node->get_player() == maximizing_player) {
@@ -97,7 +92,7 @@ static Move calculate_iterative_deepening(CNode *node, int maximizing_player, in
 }
 
 
-static Move run(std::vector<int> board, int maximizing_player, int minimax_depth, int alpha_beta, int iterative_deepening) {
+static Move run(const std::vector<int>& board, int maximizing_player, int minimax_depth, int alpha_beta, int iterative_deepening) {
     if (board.empty()) {
         return {0, -1};
     }

@@ -8,9 +8,9 @@ This game requires additional Python libraries. Install them using `pip` command
 pip install -r requirements.txt
 ```
 
-## Using CAutoPlayer
-To speed up minimax algorithm, `AutoPlayer` module has been rewritten in C++.
-Build it by using following command.
+## Using C++ extensions
+To speed up best move search you can use C++ version of algorithms.
+Build them by using following command.
 ```shell
 python setup.py build
 ```

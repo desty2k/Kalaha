@@ -9,6 +9,7 @@ class Minimax(Algorithm):
     available_options = {"minimax_depth": {"type": int, "default": 4, "min": 0, "max": 100, "value": 4},
                          "iterative_deepening": {"type": bool, "default": False, "value": False},
                          "alpha_beta_pruning": {"type": bool, "default": False, "value": False}}
+    description = "Minimize the maximum payoff"
 
     def __init__(self):
         super(Minimax, self).__init__()

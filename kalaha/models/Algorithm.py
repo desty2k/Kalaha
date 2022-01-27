@@ -8,6 +8,7 @@ class Algorithm(QObject):
     calculate_move = Signal(list, int, int)
     make_move = Signal(int)
     available_options = {}
+    description = ""
 
     def __init__(self):
         super(Algorithm, self).__init__()

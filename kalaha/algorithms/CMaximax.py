@@ -6,6 +6,7 @@ from kalaha.models import Algorithm
 class CMaximax(Algorithm):
     available_options = {"minimax_depth": {"type": int, "default": 4, "min": 0, "max": 100, "value": 4},
                          "iterative_deepening": {"type": bool, "default": False, "value": False}}
+    description = "Search for the best move using the maximax algorithm with optional iterative deepening"
 
     def __init__(self):
         super(CMaximax, self).__init__()

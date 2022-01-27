@@ -6,6 +6,8 @@ import random
 
 
 class Random(Algorithm):
+    description = "Chose random, not empty pit"
+
     def __init__(self):
         super(Random, self).__init__()
 
@@ -22,4 +24,3 @@ class Random(Algorithm):
     @Slot()
     def is_available(self):
         return True
-    

@@ -9,18 +9,14 @@ using make_move signal.
 from qtpy.QtCore import QObject, Slot, Signal, QThread, QDateTime
 
 import random
-import logging
 
 from .Node import Node
 
 _CMINIMAX_IMPORTED = True
 try:
     import CMinimax
-
-    logging.debug("Using C++ AutoPlayer")
 except ImportError:
     _CMINIMAX_IMPORTED = False
-    logging.debug("Using Python AutoPlayer")
 
 
 class AutoPlayer(QObject):

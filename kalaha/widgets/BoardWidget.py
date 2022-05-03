@@ -69,7 +69,7 @@ class BoardWidget(QWidget):
         self.set_board(board)
         for pit_index in allowed_pits:
             self.pits[pit_index].setStyleSheet(PLAYER_PIT_STYLESHEET)
-        self.pits[max(allowed_pits) + 1].setStyleSheet(PLAYER_PIT_STYLESHEET)
+        self.pits[max(allowed_pits) + 1].setStyleSheet(PLAYER_BASE_STYLESHEET)
 
     @Slot(Board)
     def set_board(self, board: Board):

@@ -19,6 +19,18 @@ class Player(Device):
                     "player_number": player_number,
                     "board": board})
 
+    @Slot(int)
+    def board_joined(self, id: int):
+        self.write({"event": "board_joined", "id": id})
+
+    @Slot(list, bool)
+    def available_boards(self, boards: list[dict], can_create: bool):
+        self.write({"event": "available_boards", "boards": boards,
+                    "can_create": can_create})
+
+    def error(self, message):
+        self.write({"event": "error", "error": message})
+
     @Slot()
     def opponent_not_connected(self):
         self.write({"event": "opponent_not_connected"})
@@ -56,5 +68,6 @@ class Player(Device):
     def you_tied(self):
         self.write({"event": "you_tied"})
 
+    @Slot()
     def turn_timeout(self):
         self.write({"event": "turn_timeout"})

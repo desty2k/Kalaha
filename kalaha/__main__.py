@@ -10,9 +10,9 @@ from qrainbowstyle.extras import qt_message_handler
 
 from kalaha.argparser import parse_args
 from kalaha.logger import Logger
-from kalaha.windows import BoardWindow
 from kalaha.config import __app_name__, __version__
-from kalaha.network.KalahaServer import KalahaServer
+from kalaha.network import KalahaServer
+from kalaha.controlers import ClientController
 
 
 if __name__ == '__main__':
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     QApplication.setAttribute(Qt.AA_UseHighDpiPixmaps)
     # QApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
 
-    QApplication.setQuitOnLastWindowClosed(True)
+    QApplication.setQuitOnLastWindowClosed(False)
 
     app = QApplication(sys.argv)
     app.setApplicationName(__app_name__)
@@ -58,13 +58,16 @@ if __name__ == '__main__':
 
     if args.mode == "server":
         # headless server mode
-        server = KalahaServer(args.board_size, args.stones_count, args.turn_timeout)
+        server = KalahaServer(args)
         server.start(args.host, args.port)
     else:
-        window = BoardWindow()
-        window.connect_to_server(args.host, args.port)
-        window.setup_auto_play(args.auto_play, args.auto_play_delay, args.minimax_depth,
-                               args.no_alpha_beta, args.iterative_deepening)
-        window.show()
+        client = ClientController()
+        client.start(args.host, args.port)
+
+        # window = BoardWindow()
+        # window.connect_to_server(args.host, args.port)
+        # window.setup_auto_play(args.auto_play, args.auto_play_delay, args.minimax_depth,
+        #                        args.no_alpha_beta, args.iterative_deepening)
+        # window.show()
 
     sys.exit(app.exec_())

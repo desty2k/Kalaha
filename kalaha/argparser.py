@@ -1,5 +1,4 @@
 import os
-import logging
 import argparse
 
 from kalaha.config import __version__, __app_name__
@@ -58,13 +57,6 @@ def get_parser():
     server_parser.add_argument("-TT", "--max-timeout", type=int, default=100,
                                help="maximum amount of seconds to wait for a turn")
 
-    # server_parser.add_argument("--stones-count", "-sc", type=int, default=5,
-    #                            help="number of stones per pit")
-    # server_parser.add_argument("--board-size", "-bs", type=int, default=6,
-    #                            help="number of pits per board")
-    # server_parser.add_argument("--turn-timeout", "-tt", type=int, default=30,
-    #                            help="timeout for each turn")
-
     client_parser = subparsers.add_parser(
         "client",
         aliases=["c"],
@@ -110,9 +102,6 @@ def parse_args(args: list):
         args.max_boards = int(os.getenv("MAX_BOARDS", args.max_boards))
         args.min_timeout = int(os.getenv("MIN_TIMEOUT", args.min_timeout))
         args.max_timeout = int(os.getenv("MAX_TIMEOUT", args.max_timeout))
-        # args.stones_count = int(os.getenv("STONES_COUNT", args.stones_count))
-        # args.board_size = int(os.getenv("BOARD_SIZE", args.board_size))
-        # args.turn_timeout = int(os.getenv("TURN_TIMEOUT", args.turn_timeout))
     elif args.mode == "client":
         args.minimax_depth = int(os.getenv("MINIMAX_DEPTH", args.minimax_depth))
         args.auto_play = str(os.getenv("AUTO_PLAY", args.auto_play)).lower() in ("true", "1", "t")

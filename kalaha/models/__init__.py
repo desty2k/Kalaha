@@ -1,5 +1,4 @@
 from .Player import Player
 from .Board import Board
-from .AutoPlayer import AutoPlayer
-from .Algorithm import Algorithm
+from .AutoBot import AutoPlayer
 from .Node import Node

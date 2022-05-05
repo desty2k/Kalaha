@@ -45,13 +45,6 @@ CMinimax = Extension('CMinimax',
                      extra_compile_args=extra_compile_args,
                      extra_link_args=extra_link_args, )
 
-CMaximax = Extension('CMaximax',
-                     ['kalaha/sources/CMaximax.cpp',
-                      'kalaha/sources/CNode.cpp'],
-                     define_macros=macros + [("STANDALONE", "1")],
-                     extra_compile_args=extra_compile_args,
-                     extra_link_args=extra_link_args, )
-
 setup(name=__app_name__,
       version=__version__,
       description="Kalaha game",
@@ -62,4 +55,4 @@ setup(name=__app_name__,
       long_description=long_desc,
       keywords=["cpp", "pyqt5", "minimax", "alpha-beta-pruning", "qtpy",
                 "iterative-deepening-search", "kalaha", "qtpynetwork", "qrainbowstyle"],
-      ext_modules=[CMinimax, CMaximax])
+      ext_modules=[CMinimax])

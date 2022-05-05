@@ -3,6 +3,7 @@ from qtpy.QtWidgets import QApplication
 
 from kalaha.windows import BoardWindow
 from kalaha.network import KalahaClient
+from .AutoPlayerController import AutoPlayerController
 
 
 class ClientController(QObject):
@@ -33,7 +34,7 @@ class ClientController(QObject):
         self.client.setup_board.connect(self.window.on_setup_board)
         self.client.your_move.connect(self.window.on_your_move)
         self.client.turn_timeout.connect(self.window.on_turn_timeout)
-        self.window.board_widget.pit_clicked.connect(self.client.make_move)
+        # self.window.board_widget.pit_clicked.connect(self.client.make_move)
 
         # game results
         self.client.you_won.connect(lambda: self.window.on_game_result("You won!"))
@@ -44,6 +45,20 @@ class ClientController(QObject):
         self.client.available_boards.connect(self.window.join_widget.set_available_boards)
         self.window.join_widget.join_board.connect(self.client.join_board)
         self.window.create_widget.create_board.connect(self.client.create_board)
+
+        self.auto_player = AutoPlayerController(self)
+        self.auto_player.make_move.connect(self.client.make_move)
+        self.auto_player.highlight_pit.connect(self.window.board_widget.highlight_pit)
+
+        # autoplayer
+        # self.window.auto_player_action.triggered.connect()
+
+    @Slot(int)
+    def on_pit_clicked(self, pit_id: int):
+        if self.auto_player.is_active():
+            self.window.error_dialog("Auto player is active!")
+        else:
+            self.client.make_move(pit_id)
 
     @Slot(str, int)
     def start(self, ip: str, port: int):

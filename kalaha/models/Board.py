@@ -138,12 +138,12 @@ class Board(QObject):
                         if opposite_hole_stones > 0:
                             text = f"Great choice! You get additional {opposite_hole_stones} stones!"
 
-                # if not self.check_game_over():
-                self.update_boards()
-                self.current_player.your_move(False, self.timeout, text)
-                self.current_player = self.get_opponent(self.current_player)
-                self.current_player.your_move(True, self.timeout, "Your turn!")
-                self.timer.start()
+                if not self.check_game_over():
+                    self.update_boards()
+                    self.current_player.your_move(False, self.timeout, text)
+                    self.current_player = self.get_opponent(self.current_player)
+                    self.current_player.your_move(True, self.timeout, "Your turn!")
+                    self.timer.start()
 
     @Slot()
     def update_boards(self):
@@ -202,7 +202,8 @@ class Board(QObject):
                 "stones_count": self.stones_count,
                 "board": self.board,
                 "id": self.id,
-                "pin": self.pin
+                "pin": self.pin,
+                "timeout": self.timeout,
                 }
 
     @Slot()

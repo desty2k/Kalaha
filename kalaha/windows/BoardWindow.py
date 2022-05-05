@@ -58,10 +58,8 @@ class BoardWindow(FramelessWindow):
         self.style_picker = StylePickerHorizontal(self)
         self.style_picker_action.setDefaultWidget(self.style_picker)
 
-        self.auto_player_checkbox = QAction("Auto move", self.menu)
-        self.auto_player_checkbox.setCheckable(True)
-        self.auto_player_checkbox.setChecked(False)
-        self.menu.addAction(self.auto_player_checkbox)
+        self.auto_player_action = QAction("Autoplayer", self.menu)
+        self.menu.addAction(self.auto_player_action)
 
         self.menu.addAction(self.style_picker_action)
         self.menu.setTitle("Options")
@@ -141,7 +139,7 @@ class BoardWindow(FramelessWindow):
             self.timeout = timeout
             self.timer.start(1000)
 
-        if your_move and self.auto_player_checkbox.isChecked():
+        if your_move and self.auto_player_action.isChecked():
             self.auto_player_worker.calculate_move.emit(self.board, self.player_number)
         self.show_info_dialog(message)
 
@@ -160,7 +158,7 @@ class BoardWindow(FramelessWindow):
     def on_game_result(self, message):
         self.timer.stop()
         self.info_widget.set_player_turn(message)
-        self.auto_player_checkbox.setChecked(False)
+        self.auto_player_action.setChecked(False)
         self.show_info_dialog(message)
 
     @Slot()
@@ -173,7 +171,7 @@ class BoardWindow(FramelessWindow):
                         minimax_depth: int, no_alpha_beta: bool, iterative_deepening: bool):
         self.info_widget.set_auto_play_options(auto_play, minimax_depth, auto_play_delay,
                                                no_alpha_beta, iterative_deepening)
-        self.auto_player_checkbox.setChecked(auto_play)
+        self.auto_player_action.setChecked(auto_play)
 
         self.auto_player_worker = AutoPlayer(minimax_depth, auto_play_delay,
                                              no_alpha_beta, iterative_deepening)

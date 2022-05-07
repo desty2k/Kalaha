@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QWidget, QLabel, QPushButton, QFormLayout, QComboBox, QLineEdit
+from qtpy.QtWidgets import QWidget, QLabel, QPushButton, QFormLayout, QComboBox, QLineEdit, QStyle
 from qtpy.QtCore import Slot, Signal
 
 from kalaha.models import Board
@@ -22,6 +22,9 @@ class JoinBoardWidget(QWidget):
         self.pin_edit = QLineEdit(self)
         self.widget_layout.addRow("Pin", self.pin_edit)
 
+        self.refresh_button = QPushButton("Refresh", self)
+        self.widget_layout.addRow(self.refresh_button)
+
         self.join_button = QPushButton("Join", self)
         self.join_button.clicked.connect(self.on_join_button_clicked)
         self.widget_layout.addRow(self.join_button)
@@ -35,8 +38,11 @@ class JoinBoardWidget(QWidget):
         self.boards_combo.clear()
         self.boards = boards
         for board in self.boards:
-            self.boards_combo.addItem(f"{board.id} - size {board.board_size} - stones {board.stones_count} - "
-                                      f"{'Secured' if board.pin else 'Unsecured'}", board)
+            pixmap = QStyle.SP_DialogNoButton if board.players == 2 else QStyle.SP_DialogYesButton
+            icon = self.style().standardIcon(pixmap)
+            self.boards_combo.addItem(icon, f"{board.players}/2 - ID {board.id} - size {board.board_size} - "
+                                            f"stones {board.stones_count} - {'Secured' if board.pin else 'Unsecured'}",
+                                      board)
 
     @Slot()
     def on_join_button_clicked(self):

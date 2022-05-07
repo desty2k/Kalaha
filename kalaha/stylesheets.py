@@ -3,6 +3,7 @@ PLAYER_PIT_STYLESHEET = """
 QPushButton {
    background-color: #388e3c;
    border-radius: 3px;
+   color: white;
 }
 QPushButton:hover {
    background-color: #6abf69;
@@ -49,5 +50,19 @@ QPushButton:hover {
 }
 QPushButton:pressed {
    background-color: #9a0007;
+}
+"""
+
+HIGHLIGHTED_PIT_STYLESHEET = """
+QPushButton {
+   background-color: #ffe228;
+   border-radius: 3px;
+   color: black;
+}
+QPushButton:hover {
+   background-color: #f2e226;
+}
+QPushButton:pressed {
+   background-color: #bfb21d;
 }
 """

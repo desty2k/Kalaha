@@ -9,7 +9,7 @@ from kalaha.models import Player
 class Board(QObject):
 
     def __init__(self, board_size: int, stones_count: int, timeout: int = 0,
-                 board: list[int] = None, pin: str = None, id: int = None, parent=None):
+                 board: list[int] = None, pin: str = None, id: int = None, players: int = None, parent=None):
         super(Board, self).__init__(parent)
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -18,6 +18,7 @@ class Board(QObject):
         self.timeout = timeout
         self.game_over = False
         self.id = id
+        self.players = players
 
         # make sure pin is None or a non-empty string
         self.pin = pin if pin else None
@@ -67,7 +68,7 @@ class Board(QObject):
                 self.player_two.allowed_pits_range = range(self.board_size + 1, self.board_size * 2 + 1)
         if self.players_connected():
             if player is not self.player_one and player is not self.player_two:
-                player.error("You can't join this game!")
+                player.error("Board already has two players connected!")
             else:
                 self.logger.info(f"B{self.id}: Both players connected")
                 self.current_player = self.player_one if random.randint(0, 1) == 0 else self.player_two
@@ -211,7 +212,8 @@ class Board(QObject):
         return {"board_size": self.board_size,
                 "stones_count": self.stones_count,
                 "id": self.id,
-                "pin": self.pin is not None
+                "pin": self.pin is not None,
+                "players": len([player for player in [self.player_one, self.player_two] if player]),
                 }
 
     @staticmethod
@@ -222,4 +224,5 @@ class Board(QObject):
                      id=data.get("id"),
                      pin=data.get("pin"),
                      timeout=data.get("timeout", 0),
+                     players=data.get("players", None),
                      parent=parent)

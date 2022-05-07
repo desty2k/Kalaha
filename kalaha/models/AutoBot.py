@@ -20,7 +20,7 @@ class CMinimaxWorker(QObject):
 
 
 class AutoPlayer(QObject):
-    make_move = Signal(int)
+    move_calculated = Signal(int)
 
     def __init__(self, minimax_depth: int, alpha_beta_pruning: bool, iterative_deepening: bool):
         super(AutoPlayer, self).__init__()
@@ -32,9 +32,11 @@ class AutoPlayer(QObject):
         self.thread = QThread()
         self.disposed_workers = []
 
-    @Slot(Board, Player)
+    @Slot(Board, int)
     def calculate_move(self, board: Board, maximizing_player: int):
-        pit = CMinimax.run(board.board, maximizing_player, self.minimax_depth, self.alpha_beta_pruning, self.iterative_deepening)
+        # print(board.board, maximizing_player, self.minimax_depth, self.alpha_beta_pruning, self.iterative_deepening)
+        pit = CMinimax.run(board.board, maximizing_player, self.minimax_depth,
+                           self.alpha_beta_pruning, self.iterative_deepening)
         self.move_calculated.emit(pit)
         # if self.worker is not None:
         #     self.disposed_workers.append(self.worker)

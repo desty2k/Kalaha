@@ -17,15 +17,6 @@ class BoardWindow(FramelessWindow):
         super(BoardWindow, self).__init__(parent)
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.player_number = 0
-        self.auto_player_worker: AutoPlayer = None
-        self.auto_player_thread: QThread = None
-        self.timeout = 0
-        self.board = []
-
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.on_timer_timeout)
-
         # windows
         self.message_box = None
 
@@ -81,20 +72,22 @@ class BoardWindow(FramelessWindow):
         self.create_widget.hide()
         self.join_widget.hide()
         self.status_widget.hide()
+        self.board_widget.setEnabled(True)
         self.board_widget.show()
         self.info_widget.show()
 
     @Slot()
     def on_opponent_disconnected(self):
-        self.timer.stop()
-        self.logger.debug("Opponent disconnected!")
         if self.message_box:
             self.message_box.close()
         self.board_widget.setEnabled(False)
         self.message_box = FramelessCriticalMessageBox(self)
         self.message_box.setStandardButtons(QDialogButtonBox.Ok)
-        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.close)
-        self.message_box.setText("Opponent disconnected! Click OK to close.")
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.message_box.close)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.board_widget.hide)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.info_widget.hide)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.join_widget.show)
+        self.message_box.setText("Opponent disconnected! Click OK to return to menu.")
         self.message_box.show()
 
     @Slot()
@@ -118,84 +111,25 @@ class BoardWindow(FramelessWindow):
         """
         Set up the board and pits
         """
-        self.board = board.board
-        self.player_number = player_number
         self.info_widget.set_player_number(player_number + 1)
         self.board_widget.setup_board(board, allowed_pits)
-
-    @Slot(Board)
-    def on_update_board(self, board: Board):
-        """
-        Update board widget with new values
-        """
-        self.board = board.board
-        self.board_widget.update_pits(board)
 
     @Slot(bool, int, str)
     def on_your_move(self, your_move: bool, timeout: int, message: str):
         self.info_widget.set_timeout(timeout)
         self.info_widget.set_player_turn(message)
-        if timeout > 0:
-            self.timeout = timeout
-            self.timer.start(1000)
-
-        if your_move and self.auto_player_action.isChecked():
-            self.auto_player_worker.calculate_move.emit(self.board, self.player_number)
         self.show_info_dialog(message)
 
     @Slot(str)
-    def on_invalid_move(self, message: str):
-        self.logger.debug(f"Invalid move: {message}")
-        if self.message_box:
-            self.message_box.close()
-        self.message_box = FramelessWarningMessageBox(self)
-        self.message_box.setStandardButtons(QDialogButtonBox.Ok)
-        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.message_box.close)
-        self.message_box.setText(message)
-        self.message_box.show()
-
-    @Slot(str)
     def on_game_result(self, message):
-        self.timer.stop()
         self.info_widget.set_player_turn(message)
         self.auto_player_action.setChecked(False)
         self.show_info_dialog(message)
 
-    @Slot()
-    def on_turn_timeout(self):
-        if self.auto_player_worker:
-            self.auto_player_worker.stop.emit()
-
-    @Slot(bool, int, int, bool, bool)
-    def setup_auto_play(self, auto_play: bool, auto_play_delay: int,
-                        minimax_depth: int, no_alpha_beta: bool, iterative_deepening: bool):
-        self.info_widget.set_auto_play_options(auto_play, minimax_depth, auto_play_delay,
-                                               no_alpha_beta, iterative_deepening)
-        self.auto_player_action.setChecked(auto_play)
-
-        self.auto_player_worker = AutoPlayer(minimax_depth, auto_play_delay,
-                                             no_alpha_beta, iterative_deepening)
-        self.auto_player_thread = QThread()
-        self.auto_player_thread.moveToThread(QThread.currentThread())
-        self.auto_player_worker.moveToThread(self.auto_player_thread)
-        self.auto_player_worker.finished.connect(self.auto_player_thread.quit)
-        self.auto_player_worker.make_move.connect(self.client.make_move)
-
-        if auto_play:
-            self.auto_player_thread.start()
-        else:
-            self.info_widget.set_auto_play_options_visible(False)
-
-    @Slot()
-    def on_timer_timeout(self):
-        self.timeout -= 1
-        self.info_widget.set_timeout(self.timeout)
-        if self.timeout == 0:
-            self.timer.stop()
-
     # Dialogs to show messages
     @Slot(str)
     def show_info_dialog(self, message: str):
+        self.logger.debug("Info dialog: " + message)
         if self.message_box:
             self.message_box.close()
         self.message_box = FramelessInformationMessageBox(self)
@@ -204,17 +138,20 @@ class BoardWindow(FramelessWindow):
         self.message_box.setText(message)
         self.message_box.show()
 
+    @Slot(str)
+    def show_warning_dialog(self, message: str):
+        self.logger.debug("Warning dialog: " + message)
+        if self.message_box:
+            self.message_box.close()
+        self.message_box = FramelessWarningMessageBox(self)
+        self.message_box.setStandardButtons(QDialogButtonBox.Ok)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.message_box.close)
+        self.message_box.setText(message)
+        self.message_box.show()
+
     @Slot()
     def close(self):
-        """
-        Close the window and message box if it is open.
-        Disconnect from the server and wait for the thread to finish.
-        If auto player is running, stop it and wait for the thread to finish.
-        """
         if self.message_box is not None:
             self.message_box.close()
-        if self.auto_player_thread:
-            self.auto_player_thread.quit()
-            self.auto_player_thread.wait()
         super().close()
         self.closed.emit()

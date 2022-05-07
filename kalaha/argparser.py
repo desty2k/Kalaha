@@ -70,15 +70,17 @@ def get_parser():
     client_parser.add_argument("-p", "--port", type=int, default=20202,
                                help="port to connect to")
     client_parser.add_argument("--auto-play", "-ap", action="store_true",
-                               help="automatically play the game")
+                               help="start with auto-player enabled")
     client_parser.add_argument("--minimax-depth", "-md", type=int, default=4,
                                help="minimax depth")
     client_parser.add_argument("--auto-play-delay", "-apd", type=int, default=5,
-                               help="delay between moves in auto-play mode in seconds")
-    client_parser.add_argument("--no-alpha-beta", "-nab", action="store_true",
-                               help="disable alpha-beta pruning")
+                               help="delay of auto-play in seconds")
+    client_parser.add_argument("--alpha-beta", "-ab", action="store_true",
+                               help="enable alpha-beta pruning")
     client_parser.add_argument("--iterative-deepening", "-id", action="store_true",
                                help="enable iterative deepening")
+    client_parser.add_argument("--highlight_moves", "-hm", action="store_true",
+                               help="highlight pit calculated by auto-player before making move")
     return parser
 
 
@@ -106,6 +108,7 @@ def parse_args(args: list):
         args.minimax_depth = int(os.getenv("MINIMAX_DEPTH", args.minimax_depth))
         args.auto_play = str(os.getenv("AUTO_PLAY", args.auto_play)).lower() in ("true", "1", "t")
         args.auto_play_delay = int(os.getenv("AUTO_PLAY_DELAY", args.auto_play_delay))
-        args.no_alpha_beta = str(os.getenv("NO_ALPHA_BETA", args.no_alpha_beta)).lower() in ("true", "1", "t")
+        args.alpha_beta = str(os.getenv("ALPHA_BETA", args.alpha_beta)).lower() in ("true", "1", "t")
         args.iterative_deepening = str(os.getenv("ITERATIVE_DEEPENING", args.iterative_deepening)).lower() in ("true", "1", "t")
+        args.highlight_moves = str(os.getenv("HIGHLIGHT_MOVES", args.highlight_moves)).lower() in ("true", "1", "t")
     return args

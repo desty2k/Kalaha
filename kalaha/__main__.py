@@ -15,7 +15,7 @@ from kalaha.network import KalahaServer
 from kalaha.controlers import ClientController
 
 
-if __name__ == '__main__':
+def main():
     logger = Logger()
     logger.enable()
     qInstallMessageHandler(qt_message_handler)
@@ -61,13 +61,10 @@ if __name__ == '__main__':
         server = KalahaServer(args)
         server.start(args.host, args.port)
     else:
-        client = ClientController()
+        client = ClientController(args)
         client.start(args.host, args.port)
-
-        # window = BoardWindow()
-        # window.connect_to_server(args.host, args.port)
-        # window.setup_auto_play(args.auto_play, args.auto_play_delay, args.minimax_depth,
-        #                        args.no_alpha_beta, args.iterative_deepening)
-        # window.show()
-
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()

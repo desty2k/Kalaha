@@ -29,8 +29,6 @@ class KalahaServer(QBalancedServer):
         if self.config.max_boards == len(self.boards):
             player.error(f"Reached limit of available boards ({self.config.max_boards}).")
         else:
-            # check if board created by player has valid parameters
-            # TODO: pass upper limits as parameters or environment variables
             if not self.config.min_board <= board.board_size <= self.config.max_board:
                 player.error(f"Invalid board size (must be between "
                              f"{self.config.min_board} and {self.config.max_board}).")
@@ -67,9 +65,8 @@ class KalahaServer(QBalancedServer):
             opponent = board.get_opponent(player)
             if opponent is not None and opponent.is_connected():
                 opponent.opponent_disconnected()
-            else:
-                self.boards.remove(board)
-                self.logger.info(f"Board {board.id} removed")
+            self.boards.remove(board)
+            self.logger.info(f"Board {board.id} removed")
 
     @Slot(Player, bytes)
     def on_message(self, player: Player, data: bytes) -> None:
@@ -106,7 +103,7 @@ class KalahaServer(QBalancedServer):
                 self.create_board(player, Board.deserialize(message.get("board")))
             case "get_boards":
                 player.available_boards([board.safe_serialize() for board in self.boards],
-                                        self.max_boards != len(self.boards))
+                                        self.config.max_boards != len(self.boards))
 
     @Slot(Player)
     def get_board_by_player(self, player: Player) -> Board:

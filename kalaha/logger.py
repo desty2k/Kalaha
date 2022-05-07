@@ -38,7 +38,6 @@ class Logger:
                                                       "%(message)s")
         self.handler.setFormatter(self.formatter)
         self.logger.addHandler(self.handler)
-        self.logger.info("Logger enabled")
         return self.logger
 
     def set_level(self, level):

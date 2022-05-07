@@ -1,4 +1,4 @@
-from qtpy.QtCore import Slot, Signal
+from qtpy.QtCore import Slot, Signal, QTimer
 from QtPyNetwork.client import QThreadedClient
 
 from kalaha.models import Board
@@ -32,6 +32,14 @@ class KalahaClient(QThreadedClient):
         super(KalahaClient, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        self.my_move = False
+        self.board = None
+        self.player_number = 0
+        self.allowed_pits = None
+
+        self.timer = QTimer()
+        self.timeout = 0
+
     @Slot(bytes)
     def on_message(self, data: bytes):
         """Handle messages from server"""
@@ -51,27 +59,41 @@ class KalahaClient(QThreadedClient):
             case "turn_timeout":
                 self.turn_timeout.emit()
             case "your_move":
-                self.your_move.emit(message.get("value"), message.get("timeout"), message.get("text"))
+                value = message.get("value")
+                timeout = message.get("timeout")
+                self.my_move = value
+                self.timeout = timeout
+                self.your_move.emit(value, timeout, message.get("text"))
             case "available_boards":
                 self.available_boards.emit([Board.deserialize(board) for board in message.get("boards")],
                                            message.get("can_create"))
             case "board_joined":
                 self.board_joined.emit(int(message.get("id")))
             case "setup_board":
-                self.setup_board.emit(Board.deserialize(message.get("board")), message.get("allowed_pits_range"),
-                                      message.get("player_number"))
+                board = Board.deserialize(message.get("board"))
+                allowed_pits = message.get("allowed_pits_range")
+                player_number = message.get("player_number")
+                self.board = board
+                self.allowed_pits = allowed_pits
+                self.player_number = player_number
+                self.setup_board.emit(board, allowed_pits, player_number)
             case "update_board":
                 board = Board.deserialize(message.get("board"))
+                self.board = board
                 self.update_board.emit(board)
             case "you_won":
+                self.timer.stop()
                 self.you_won.emit()
             case "you_lost":
+                self.timer.stop()
                 self.you_lost.emit()
             case "you_tied":
+                self.timer.stop()
                 self.you_tied.emit()
             case "opponent_connected":
                 self.opponent_connected.emit()
             case "opponent_disconnected":
+                self.timer.stop()
                 self.opponent_disconnected.emit()
             case "opponent_not_connected":
                 self.opponent_not_connected.emit()

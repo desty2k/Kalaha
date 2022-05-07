@@ -1,13 +1,16 @@
 # Changelog
 
 - 0.3.0:
-  - Create ClientController
-  - Add CMaximax algorithm
-  - Add option to create multiple boards secured by PIN
+  - Use MVC pattern
+  - Move logic from views to controllers
+  - Add lobby - create board, join board views
+  - Add window for setting up autoplayer
+  - Add autoplayer pit highlighting before making a move
   - Use Python 3.10 feature - pattern matching
   - Change Dockerfile base image to `python:3.10-slim`
   - Optimize game engine code
   - Use `QBalancedServer` instead of `QThreadedServer`
+  - Add GitHub Actions for release and deploy
 
 - 0.2.0:
   - Rename CAutoPlayer to CMinimax

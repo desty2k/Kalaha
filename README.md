@@ -42,23 +42,23 @@ python -m kalaha client -H 127.0.0.1 -p 20202
 ```
 
 ### Auto player
-__Note:__ You will not be able to make moves manually.
 
-Start client, connect to `127.0.0.1:20202` and enable auto-play.
+Auto player can be configured via in-game GUI or command arguments. __Note: You will not be able to make moves manually.__
+
+Start client, connect to `127.0.0.1:20202` and enable autoplay.
 This command configures minimax algorithm to search for best move in tree of depth `4`.
 Delay of auto move will be `5` seconds.
 ```shell
 python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4
 ```
-You can disale alpha-beta pruning by passing `-nab` argument.
+You can disale alpha-beta pruning by passing `-ab` argument.
 ```shell
-python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4 -nab
+python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4 -ab
 ```
 You can enable iterative deepening by passing `-id` argument.
 ```shell
 python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4 -id
 ```
-
 
 ## FAQ
 

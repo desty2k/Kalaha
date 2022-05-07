@@ -1,0 +1,52 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Publish release
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install .
+
+      - name: Get package version
+        run: |
+          python -m kalaha -V > version.txt
+          echo "BUILD_VERSION=$(cat version.txt)" | tr -d '\r\t\n' >> $GITHUB_ENV
+
+      - name: Get latest release version
+        continue-on-error: true
+        run: |
+          git fetch --tags
+          git fetch --prune --unshallow || true
+          git describe --abbrev=0 --tags > release_version.txt
+          echo "RELEASE_VERSION=$(cat release_version.txt)" | tr -d '\r\t\n' >> $GITHUB_ENV
+          echo "${{env.RELEASE_VERSION}}"
+
+      - name: Generate changelog
+        if: env.BUILD_VERSION != env.RELEASE_VERSION && env.BUILD_VERSION != ''
+        id: changelog
+        uses: metcalfc/changelog-generator@v3.0.0
+        with:
+          myToken: ${{ secrets.PUBLISH_TOKEN }}
+
+      - name: Create a release
+        if: env.BUILD_VERSION != env.RELEASE_VERSION && env.BUILD_VERSION != ''
+        uses: softprops/action-gh-release@v1
+        with:
+          body: ${{ steps.changelog.outputs.changelog }}
+          tag_name: ${{ env.BUILD_VERSION }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

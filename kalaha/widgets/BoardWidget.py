@@ -13,9 +13,9 @@ class BoardWidget(QWidget):
 
     def __init__(self, parent):
         super(BoardWidget, self).__init__(parent)
-        self.pits = []
         self.logger = logging.getLogger(self.__class__.__name__)
 
+        self.pits: list[PitButton] = []
         self.player_one_base = None
         self.player_two_base = None
 
@@ -41,9 +41,22 @@ class BoardWidget(QWidget):
         self.pits_layout.addWidget(self.player_two_pits_widget)
         self.pits_layout.addWidget(self.player_one_pits_widget)
 
+    @Slot(bool, int)
+    def highlight_pit(self, value: bool, pit: int):
+        self.pits[pit].setStyleSheet(HIGHLIGHTED_PIT_STYLESHEET if value else PLAYER_PIT_STYLESHEET)
+
+    @Slot()
+    def clear_board(self):
+        """Removes all pits from the board."""
+        for pit in self.pits:
+            pit.setParent(None)
+            pit.deleteLater()
+        self.pits = []
+
     @Slot(int)
     def set_board_size(self, size: int):
-        self.pits = []
+        """Generates new board with the given size."""
+        self.clear_board()
         for i in range(size):
             pit = PitButton(i, self.player_one_pits_widget)
             self.pits.append(pit)
@@ -65,7 +78,8 @@ class BoardWidget(QWidget):
         self.widget_layout.addWidget(self.player_one_base)
 
     @Slot(Board, list)
-    def setup_board(self, board, allowed_pits):
+    def setup_board(self, board: Board, allowed_pits: list[int]):
+        """Sets up the board with the given board model."""
         self.set_board(board)
         for pit_index in allowed_pits:
             self.pits[pit_index].setStyleSheet(PLAYER_PIT_STYLESHEET)
@@ -78,13 +92,13 @@ class BoardWidget(QWidget):
             raise ValueError("Pit count does not match")
         else:
             self.set_board_size(board.board_size)
-            self.update_pits(board)
+            self.update_board(board)
             self.logger.debug(f"Done! Pits indexes are: {[pit.index for pit in self.pits]}")
             for pit in self.pits:
                 pit.clicked.connect(self.on_pit_clicked)
 
     @Slot(Board)
-    def update_pits(self, board: Board):
+    def update_board(self, board: Board):
         for i in range(len(board.board)):
             self.pits[i].setText(str(board.board[i]))
 

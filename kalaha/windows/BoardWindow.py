@@ -23,6 +23,7 @@ class BoardWindow(FramelessWindow):
         # main widgets
         self.status_widget = StatusWidget(self)
         self.status_widget.set_status("Connecting to server...")
+        self.status_widget.hide()
         self.addContentWidget(self.status_widget)
 
         self.board_widget = BoardWidget(self)
@@ -57,15 +58,15 @@ class BoardWindow(FramelessWindow):
         self.addMenu(self.menu)
 
     @Slot(str, int)
-    def on_client_connected(self, host: str, port: int):
-        self.status_widget.hide()
-        self.join_widget.show()
-        self.status_widget.set_status("Waiting for opponent...")
+    # def on_client_connected(self, host: str, port: int):
+    #     self.status_widget.hide()
+    #     self.join_widget.show()
+    #     self.status_widget.set_status("Waiting for opponent...")
 
-    @Slot(str, int)
-    def on_failed_to_connect(self, host: str, port: int):
-        self.show_info_dialog("Failed to connect!")
-        self.status_widget.set_status(f"Failed to connect to {host}:{port}")
+    # @Slot(str, int)
+    # def on_failed_to_connect(self, host: str, port: int):
+    #     self.show_info_dialog("Failed to connect!")
+    #     self.status_widget.set_status(f"Failed to connect to {host}:{port}")
 
     @Slot()
     def on_opponent_connected(self):

@@ -15,7 +15,7 @@ class AutoPlayerController(QObject):
     def __init__(self, config, parent=None):
         super().__init__(parent)
         self.config = config
-        self.window = AutoPlayerDialog(self.parent().window)
+        self.window = AutoPlayerDialog(parent)
         self.window.enable_auto_player.stateChanged.connect(self.window.auto_player_groupbox.setEnabled)
         self.window.accepted.connect(self.on_auto_player_accepted)
         self.window.rejected.connect(self.window.close)
@@ -31,6 +31,7 @@ class AutoPlayerController(QObject):
             self.window.auto_player_delay.setValue(self.config.auto_player_delay)
             self.on_auto_player_accepted()
 
+    @Slot()
     def on_auto_player_accepted(self):
         if self.window.enable_auto_player.isChecked():
             self.auto_player = AutoPlayer(self.window.minimax_depth.value(),
@@ -48,7 +49,3 @@ class AutoPlayerController(QObject):
         if self.window.highlight_moves_checkbox.isChecked():
             self.highlight_pit.emit(True, pit)
         QTimer.singleShot(self.window.auto_player_delay.value() * 1000, lambda: self.make_move.emit(pit))
-
-    def is_active(self):
-        return self.auto_player is not None
-

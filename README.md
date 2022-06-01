@@ -9,7 +9,7 @@ pip install -r requirements.txt
 ```
 
 ## Using C++ extensions
-To speed up best move search you can use C++ version of algorithms.
+To speed up best move search CMiniMax algorithm has been written in C++.
 Build them by using following command.
 ```shell
 python setup.py build

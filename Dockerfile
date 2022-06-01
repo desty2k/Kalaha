@@ -5,7 +5,8 @@ COPY requirements.txt .
 RUN \
     set -e \
     && apt update \
-    && apt install libsm6 libgl1 libgl1-mesa-glx python3-pyqt5.qtwebengine python3-pyqt5.qtmultimedia -y \
+    && apt install libsm6 libgl1 libgl1-mesa-glx qt5-qmake python3-pyqt5.qtwebengine python3-pyqt5.qtmultimedia -y \
+    && pip install --upgrade pip \
     && pip install -r requirements.txt
 
 COPY . .

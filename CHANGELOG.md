@@ -11,6 +11,7 @@
   - Optimize game engine code
   - Bump `QtPyNetwork` to 0.7.0
   - Add GitHub Actions for release and deploy
+  - Better error, disconnect handling
 
 - 0.2.0:
   - Rename CAutoPlayer to CMinimax

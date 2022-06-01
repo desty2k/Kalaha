@@ -36,7 +36,7 @@ jobs:
           echo "${{env.RELEASE_VERSION}}"
 
       - name: Generate changelog
-        if: env.BUILD_VERSION != env.RELEASE_VERSION && env.BUILD_VERSION != ''
+        if: env.BUILD_VERSION != env.RELEASE_VERSION && env.BUILD_VERSION != '' && env.RELEASE_VERSION != ''
         id: changelog
         uses: metcalfc/changelog-generator@v3.0.0
         with:

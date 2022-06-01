@@ -1,12 +1,15 @@
-FROM python:3.10-slim
+FROM python:3.10
+
+ADD . /app
 WORKDIR /app
-COPY requirements.txt .
 
 RUN \
     set -e \
     && apt update \
-    && apt install libsm6 libgl1 libgl1-mesa-glx python3-pyqt5.qtwebengine python3-pyqt5.qtmultimedia -y \
-    && pip install --upgrade pip \
+    && apt install libsm6 libgl1 libgl1-mesa-glx python3-pyqt5.qtwebengine python3-pyqt5.qtmultimedia -y
+
+RUN \
+    pip install --upgrade pip \
     && pip install -r requirements.txt \
     && pip install .
 

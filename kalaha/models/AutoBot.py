@@ -3,8 +3,6 @@ from qtpy.QtCore import QObject, Signal, Slot, QThread
 from .Player import Player
 from .Board import Board
 
-import CMinimax
-
 
 class CMinimaxWorker(QObject):
     move_calculated = Signal(int)
@@ -15,6 +13,7 @@ class CMinimaxWorker(QObject):
     @Slot(Board, Player)
     def run(self, board: Board, maximizing_player: int,
             minimax_depth: int, alpha_beta_pruning: bool, iterative_deepening: bool):
+        import CMinimax
         pit = CMinimax.run(board.board, maximizing_player, minimax_depth, alpha_beta_pruning, iterative_deepening)
         self.move_calculated.emit(pit)
 
@@ -34,6 +33,7 @@ class AutoPlayer(QObject):
 
     @Slot(Board, int)
     def calculate_move(self, board: Board, maximizing_player: int):
+        import CMinimax
         pit = CMinimax.run(board.board, maximizing_player, self.minimax_depth,
                            self.alpha_beta_pruning, self.iterative_deepening)
         self.move_calculated.emit(pit)

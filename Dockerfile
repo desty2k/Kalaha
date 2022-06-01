@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM python:3.10-slim
 WORKDIR /app
 COPY requirements.txt .
 
@@ -7,7 +7,8 @@ RUN \
     && apt update \
     && apt install libsm6 libgl1 libgl1-mesa-glx python3-pyqt5.qtwebengine python3-pyqt5.qtmultimedia -y \
     && pip install --upgrade pip \
-    && pip install -r requirements.txt
+    && pip install -r requirements.txt \
+    && pip install .
 
 COPY . .
 CMD ["python", "-m", "kalaha", "server"]

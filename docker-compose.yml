@@ -2,7 +2,7 @@
 services:
   kalaha:
     container_name: kalaha
-    build: .
+    image: ghcr.io/desty2k/kalaha:latest
     ports:
       - "20202:20202"
     # all environment variables are optional

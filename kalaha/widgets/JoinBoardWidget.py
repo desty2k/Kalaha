@@ -2,16 +2,19 @@ from qtpy.QtWidgets import QWidget, QLabel, QPushButton, QFormLayout, QComboBox,
 from qtpy.QtCore import Slot, Signal
 
 from kalaha.models import Board
+from .CenteredFrameWidget import CenteredFrameWidget
 
 
-class JoinBoardWidget(QWidget):
+class JoinBoardWidget(CenteredFrameWidget):
     join_board = Signal(Board, str)
 
     def __init__(self, parent):
         super().__init__(parent)
         self.boards = []
-        self.widget_layout = QFormLayout(self)
-        self.setLayout(self.widget_layout)
+        self.widget = QWidget(self)
+        self.widget_layout = QFormLayout(self.widget)
+        self.widget.setLayout(self.widget_layout)
+        self.set_center_widget(self.widget)
 
         self.join_label = QLabel("Select board", self)
         self.widget_layout.addRow(self.join_label)
@@ -38,9 +41,10 @@ class JoinBoardWidget(QWidget):
         self.boards_combo.clear()
         self.boards = boards
         for board in self.boards:
-            pixmap = QStyle.SP_DialogNoButton if board.players == 2 else QStyle.SP_DialogYesButton
+            player_count = len([p for p in [board.player_one, board.player_two] if p is not None])
+            pixmap = QStyle.SP_DialogNoButton if player_count == 2 else QStyle.SP_DialogYesButton
             icon = self.style().standardIcon(pixmap)
-            self.boards_combo.addItem(icon, f"{board.players}/2 - ID {board.id} - size {board.board_size} - "
+            self.boards_combo.addItem(icon, f"{player_count}/2 - ID {board.id} - size {board.board_size} - "
                                             f"stones {board.stones_count} - {'Secured' if board.pin else 'Unsecured'}",
                                       board)
 

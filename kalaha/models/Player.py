@@ -1,21 +1,22 @@
 from qtpy.QtCore import Slot
-from QtPyNetwork.models import Device
+from QtPyNetwork.model import Client
 
 
-class Player(Device):
+class Player(Client):
 
     def __init__(self, server, id, ip, port):
         super(Player, self).__init__(server, id, ip, port)
-        self.allowed_pits_range = None
+        self.base_pit: int = None
+        self.allowed_pits: list[int] = None
 
     @Slot(dict)
     def write(self, message: dict):
         self.server().write(self, message)
 
     @Slot(dict, list, int)
-    def setup_board(self, board, allowed_pits_range, player_number):
+    def setup_board(self, board, allowed_pits, player_number):
         self.write({"event": "setup_board",
-                    "allowed_pits_range": allowed_pits_range,
+                    "allowed_pits": allowed_pits,
                     "player_number": player_number,
                     "board": board})
 
@@ -69,5 +70,26 @@ class Player(Device):
         self.write({"event": "you_tied"})
 
     @Slot()
+    def board_left(self):
+        self.write({"event": "board_left"})
+
+    @Slot()
     def turn_timeout(self):
         self.write({"event": "turn_timeout"})
+
+    @Slot()
+    def safe_serialize(self) -> dict:
+        return {
+            "id": 0,
+            "ip": "127.0.0.1",
+            "port": 12345,
+            "base_pit": self.base_pit,
+            "allowed_pits": self.allowed_pits,
+        }
+
+    @staticmethod
+    def deserialize(data: dict):
+        player = Player(None, data["id"], data["ip"], data["port"])
+        player.base_pit = data["base_pit"]
+        player.allowed_pits = data["allowed_pits"]
+        return player

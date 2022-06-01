@@ -1,16 +1,22 @@
 from qtpy.QtWidgets import QWidget, QCheckBox, QGroupBox, QFormLayout, QSpinBox, QDialogButtonBox
+from qtpy.QtCore import Slot
+from qrainbowstyle.windows import FramelessCriticalMessageBox, FramelessWindow
 
-from qrainbowstyle.windows import (FramelessWindow)
+from kalaha.widgets import CenteredFrameWidget
 
 
 class AutoPlayerDialog(FramelessWindow):
 
     def __init__(self, parent=None):
         super(AutoPlayerDialog, self).__init__(parent)
-        self.content_widget = QWidget(self)
+        self.message_box = None
+        self.frame_widget = CenteredFrameWidget(self)
+        self.content_widget = QWidget(self.frame_widget)
         self.widget_layout = QFormLayout(self.content_widget)
         self.content_widget.setLayout(self.widget_layout)
-        self.addContentWidget(self.content_widget)
+
+        self.addContentWidget(self.frame_widget)
+        self.frame_widget.set_center_widget(self.content_widget)
 
         self.enable_auto_player = QCheckBox("Enable Auto Player", self.content_widget)
         self.widget_layout.addRow(self.enable_auto_player)
@@ -45,3 +51,11 @@ class AutoPlayerDialog(FramelessWindow):
 
         self.widget_layout.addWidget(self.button_box)
 
+    @Slot()
+    def on_failed_to_enable_auto_player(self):
+        self.message_box = FramelessCriticalMessageBox(self)
+        self.message_box.setText("Failed to enable auto player. Could not load CMiniMax extension module."
+                                 "Please build the extension module and try again.")
+        self.message_box.setStandardButtons(QDialogButtonBox.Ok)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.message_box.close)
+        self.message_box.show()

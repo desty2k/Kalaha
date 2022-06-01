@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QWidget, QHBoxLayout, QLabel, QLCDNumber, QSizePolicy, QSpacerItem
+from qtpy.QtWidgets import QWidget, QHBoxLayout, QLabel, QLCDNumber, QSizePolicy, QSpacerItem, QPushButton
 from qtpy.QtCore import Slot, Qt
 
 
@@ -26,35 +26,12 @@ class InfoWidget(QWidget):
         self.spacer_right = QSpacerItem(100, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
         self.widget_layout.addItem(self.spacer_right)
 
-        self.player_number_label = QLabel(self)
-        self.player_number_label.setFont(font)
-        self.player_number_label.setText("Player ...")
-        self.player_number_label.setAlignment(Qt.AlignCenter)
-        self.widget_layout.addWidget(self.player_number_label)
-
-        self.auto_play_options_label = QLabel(self)
-        self.auto_play_options_label.setFont(font)
-        self.auto_play_options_label.setAlignment(Qt.AlignCenter)
-        self.widget_layout.addWidget(self.auto_play_options_label)
-        self.auto_play_options_label.hide()
-
-    @Slot(bool, int, int, bool, bool)
-    def set_auto_play_options(self, auto_play, minimax_depth, auto_play_delay,
-                              no_alpha_beta, iterative_deepening):
-        self.auto_play_options_label.setText(f"AP: {int(auto_play)} "
-                                             f"MD: {minimax_depth} "
-                                             f"APD: {auto_play_delay} "
-                                             f"AB: {int(not no_alpha_beta)} "
-                                             f"ID: {int(iterative_deepening)}")
-        self.auto_play_options_label.show()
-
-    @Slot(bool)
-    def set_auto_play_options_visible(self, value: bool):
-        self.auto_play_options_label.setVisible(value)
-
-    @Slot(int)
-    def set_player_number(self, player_number: int):
-        self.player_number_label.setText(f"Player {player_number}")
+        self.leave_button = QPushButton("Leave", self)
+        self.leave_button.setMinimumSize(100, 50)
+        font = self.leave_button.font()
+        font.setPointSize(11)
+        self.leave_button.setFont(font)
+        self.widget_layout.addWidget(self.leave_button)
 
     @Slot(str)
     def set_player_turn(self, message: str):

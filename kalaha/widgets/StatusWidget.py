@@ -1,4 +1,4 @@
-from qtpy.QtWidgets import QWidget, QVBoxLayout, QLabel
+from qtpy.QtWidgets import QWidget, QVBoxLayout, QLabel, QSpacerItem, QSizePolicy
 from qtpy.QtCore import Slot, Qt
 from qrainbowstyle.widgets import WaitingSpinner
 
@@ -22,7 +22,10 @@ class StatusWidget(QWidget):
         font.setPointSize(15)
         self.status_label.setFont(font)
         self.status_label.setAlignment(Qt.AlignCenter)
+
+        self.widget_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.widget_layout.addWidget(self.status_label)
+        self.widget_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         self.spinner.start()
 
     @Slot(str)
@@ -32,6 +35,7 @@ class StatusWidget(QWidget):
     @Slot()
     def show(self):
         self.spinner.start()
+        self.status_label.clear()
         super().show()
 
     @Slot()

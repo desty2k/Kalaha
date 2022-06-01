@@ -34,7 +34,6 @@ class AutoPlayer(QObject):
 
     @Slot(Board, int)
     def calculate_move(self, board: Board, maximizing_player: int):
-        # print(board.board, maximizing_player, self.minimax_depth, self.alpha_beta_pruning, self.iterative_deepening)
         pit = CMinimax.run(board.board, maximizing_player, self.minimax_depth,
                            self.alpha_beta_pruning, self.iterative_deepening)
         self.move_calculated.emit(pit)
@@ -56,3 +55,10 @@ class AutoPlayer(QObject):
     # def on_move_calculated(self, move: int):
     #     if self.sender() not in self.disposed_workers
 
+    @staticmethod
+    def is_available() -> bool:
+        try:
+            import CMinimax
+            return True
+        except ImportError:
+            return False

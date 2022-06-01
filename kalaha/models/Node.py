@@ -42,4 +42,3 @@ class Node:
                 for i in self.player_ranges[player]:
                     self.board[i] = 0
             self.game_over = True
-

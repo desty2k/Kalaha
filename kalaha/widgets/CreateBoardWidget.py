@@ -2,15 +2,17 @@ from qtpy.QtWidgets import QWidget, QLineEdit, QPushButton, QFormLayout, QSpinBo
 from qtpy.QtCore import Slot, Signal
 
 from kalaha.models import Board
+from .CenteredFrameWidget import CenteredFrameWidget
 
 
-class CreateBoardWidget(QWidget):
+class CreateBoardWidget(CenteredFrameWidget):
     create_board = Signal(Board)
 
     def __init__(self, parent):
         super().__init__(parent)
-        self.widget_layout = QFormLayout(self)
-        self.setLayout(self.widget_layout)
+        self.widget = QWidget(self)
+        self.widget_layout = QFormLayout(self.widget)
+        self.set_center_widget(self.widget)
 
         self.create_label = QLabel("Board", self)
         self.widget_layout.addRow(self.create_label)

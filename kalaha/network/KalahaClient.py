@@ -1,20 +1,21 @@
 from qtpy.QtCore import Slot, Signal, QTimer
-from QtPyNetwork.client import QThreadedClient
+from QtPyNetwork.client import TCPClient
 
-from kalaha.models import Board
+from kalaha.models import Board, Player
 
 import json
 import logging
 
 
-class KalahaClient(QThreadedClient):
+class KalahaClient(TCPClient):
     # board changing / errors signals
     app_error = Signal(str)
     available_boards = Signal(list, bool)
     invalid_move = Signal(str)
     your_move = Signal(bool, int, str)
     board_joined = Signal(int)
-    setup_board = Signal(Board, list, int)
+    board_left = Signal()
+    setup_board = Signal(Board, Player)
     update_board = Signal(Board)
     turn_timeout = Signal()
 
@@ -24,18 +25,15 @@ class KalahaClient(QThreadedClient):
     opponent_not_connected = Signal()
 
     # game result
-    you_won = Signal()
-    you_lost = Signal()
-    you_tied = Signal()
+    game_result = Signal(str)
 
     def __init__(self):
-        super(KalahaClient, self).__init__()
+        super().__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
 
-        self.my_move = False
-        self.board = None
-        self.player_number = 0
-        self.allowed_pits = None
+        self.my_move: bool = False
+        self.board: Board = None
+        self.player: int = None
 
         self.timer = QTimer()
         self.timeout = 0
@@ -69,31 +67,38 @@ class KalahaClient(QThreadedClient):
                                            message.get("can_create"))
             case "board_joined":
                 self.board_joined.emit(int(message.get("id")))
+            case "board_left":
+                self.board_left.emit()
             case "setup_board":
                 board = Board.deserialize(message.get("board"))
-                allowed_pits = message.get("allowed_pits_range")
                 player_number = message.get("player_number")
+                player = board.player_one if player_number == 0 else board.player_two
+                self.player = player_number
                 self.board = board
-                self.allowed_pits = allowed_pits
-                self.player_number = player_number
-                self.setup_board.emit(board, allowed_pits, player_number)
+                self.setup_board.emit(board, player)
             case "update_board":
                 board = Board.deserialize(message.get("board"))
                 self.board = board
                 self.update_board.emit(board)
             case "you_won":
                 self.timer.stop()
-                self.you_won.emit()
+                self.get_boards()
+                self.game_result.emit("You won!")
             case "you_lost":
                 self.timer.stop()
-                self.you_lost.emit()
+                self.get_boards()
+                self.game_result.emit("You lost!")
             case "you_tied":
                 self.timer.stop()
-                self.you_tied.emit()
+                self.get_boards()
+                self.game_result.emit("You tied!")
             case "opponent_connected":
                 self.opponent_connected.emit()
             case "opponent_disconnected":
                 self.timer.stop()
+                self.board = None
+                self.player = None
+                self.get_boards()
                 self.opponent_disconnected.emit()
             case "opponent_not_connected":
                 self.opponent_not_connected.emit()
@@ -125,3 +130,8 @@ class KalahaClient(QThreadedClient):
     def get_boards(self):
         """Get list of available boards"""
         self.write({"event": "get_boards"})
+
+    @Slot()
+    def leave_board(self):
+        """Leave current board"""
+        self.write({"event": "leave_board"})

@@ -1,13 +1,13 @@
 from qtpy.QtWidgets import (QDialogButtonBox, QMenu, QWidgetAction, QAction)
-from qtpy.QtCore import Slot, QTimer, QThread, Signal
-from qrainbowstyle.windows import (FramelessWindow, FramelessWarningMessageBox, FramelessInformationMessageBox,
-                                   FramelessCriticalMessageBox)
+from qtpy.QtCore import Slot, Signal
+from qrainbowstyle.windows import FramelessWindow, FramelessWarningMessageBox, FramelessInformationMessageBox
 from qrainbowstyle.widgets import StylePickerHorizontal
 
 import logging
 
-from kalaha.models import Board, AutoPlayer
-from kalaha.widgets import BoardWidget, InfoWidget, StatusWidget, JoinBoardWidget, CreateBoardWidget
+from kalaha.models import Board, Player
+from kalaha.widgets import (BoardWidget, InfoWidget, StatusWidget, JoinBoardWidget,
+                            CreateBoardWidget, ConnectServerWidget)
 
 
 class BoardWindow(FramelessWindow):
@@ -21,14 +21,13 @@ class BoardWindow(FramelessWindow):
         self.message_box = None
 
         # main widgets
-        self.status_widget = StatusWidget(self)
-        self.status_widget.set_status("Connecting to server...")
-        self.status_widget.hide()
-        self.addContentWidget(self.status_widget)
-
         self.board_widget = BoardWidget(self)
         self.board_widget.hide()
         self.addContentWidget(self.board_widget)
+
+        self.status_widget = StatusWidget(self)
+        self.status_widget.hide()
+        self.addContentWidget(self.status_widget)
 
         self.info_widget = InfoWidget(self)
         self.info_widget.hide()
@@ -44,6 +43,10 @@ class BoardWindow(FramelessWindow):
         self.create_widget.hide()
         self.addContentWidget(self.create_widget)
 
+        self.connect_widget = ConnectServerWidget(self)
+        self.connect_widget.hide()
+        self.addContentWidget(self.connect_widget)
+
         # other widgets
         self.menu = QMenu(self)
         self.style_picker_action = QWidgetAction(self.menu)
@@ -57,16 +60,16 @@ class BoardWindow(FramelessWindow):
         self.menu.setTitle("Options")
         self.addMenu(self.menu)
 
-    @Slot(str, int)
-    # def on_client_connected(self, host: str, port: int):
-    #     self.status_widget.hide()
-    #     self.join_widget.show()
-    #     self.status_widget.set_status("Waiting for opponent...")
-
-    # @Slot(str, int)
-    # def on_failed_to_connect(self, host: str, port: int):
-    #     self.show_info_dialog("Failed to connect!")
-    #     self.status_widget.set_status(f"Failed to connect to {host}:{port}")
+    @Slot()
+    def on_client_disconnected(self):
+        self.show_warning_dialog("Connection to server lost!")
+        self.board_widget.hide()
+        self.status_widget.hide()
+        self.info_widget.hide()
+        self.join_widget.hide()
+        self.create_widget.hide()
+        self.connect_widget.spinner.stop()
+        self.connect_widget.show()
 
     @Slot()
     def on_opponent_connected(self):
@@ -76,20 +79,6 @@ class BoardWindow(FramelessWindow):
         self.board_widget.setEnabled(True)
         self.board_widget.show()
         self.info_widget.show()
-
-    @Slot()
-    def on_opponent_disconnected(self):
-        if self.message_box:
-            self.message_box.close()
-        self.board_widget.setEnabled(False)
-        self.message_box = FramelessCriticalMessageBox(self)
-        self.message_box.setStandardButtons(QDialogButtonBox.Ok)
-        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.message_box.close)
-        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.board_widget.hide)
-        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.info_widget.hide)
-        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.join_widget.show)
-        self.message_box.setText("Opponent disconnected! Click OK to return to menu.")
-        self.message_box.show()
 
     @Slot()
     def set_board_create_visible(self):
@@ -105,15 +94,16 @@ class BoardWindow(FramelessWindow):
         self.join_widget.hide()
         self.create_widget.hide()
         self.status_widget.show()
+        self.info_widget.show()
+        self.status_widget.set_status("Waiting for opponent...")
 
     # Board events
-    @Slot(Board, list, int)
-    def on_setup_board(self, board, allowed_pits, player_number):
+    @Slot(Board, Player)
+    def on_setup_board(self, board: Board, player: Player):
         """
         Set up the board and pits
         """
-        self.info_widget.set_player_number(player_number + 1)
-        self.board_widget.setup_board(board, allowed_pits)
+        self.board_widget.setup_board(board, player)
 
     @Slot(bool, int, str)
     def on_your_move(self, your_move: bool, timeout: int, message: str):
@@ -122,10 +112,21 @@ class BoardWindow(FramelessWindow):
         self.show_info_dialog(message)
 
     @Slot(str)
-    def on_game_result(self, message):
+    def show_leave_board_messagebox(self, message):
         self.info_widget.set_player_turn(message)
         self.auto_player_action.setChecked(False)
-        self.show_info_dialog(message)
+        if self.message_box:
+            self.message_box.close()
+        self.message_box = FramelessInformationMessageBox(self)
+        self.message_box.setStandardButtons(QDialogButtonBox.Ok)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.message_box.close)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.board_widget.hide)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.status_widget.hide)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.info_widget.hide)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.join_widget.show)
+        self.message_box.button(QDialogButtonBox.Ok).clicked.connect(self.status_widget.hide)
+        self.message_box.setText(message + " Click OK to return to menu.")
+        self.message_box.show()
 
     # Dialogs to show messages
     @Slot(str)

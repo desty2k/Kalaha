@@ -1,4 +1,5 @@
-from QtPyNetwork.server import QBalancedServer
+from QtPyNetwork.server import TCPServer
+from QtPyNetwork.balancer import ThreadPoolBalancer
 from qtpy.QtCore import Signal, Slot, QObject
 
 import json
@@ -7,13 +8,15 @@ import logging
 from kalaha.models import Player, Board
 
 
-class KalahaServer(QBalancedServer):
+class KalahaServer(TCPServer):
 
     def __init__(self, config, parent=None):
-        super(KalahaServer, self).__init__(parent)
+        super(KalahaServer, self).__init__(ThreadPoolBalancer())
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.set_device_model(Player)
-        self.boards = [Board(10, 2, 5, id=-1, pin="1"), Board(20, 3, 100, id=-2)]
+        self.set_client_model(Player)
+        self.boards = []
+        # for testing
+        # self.boards = [Board(10, 2, 5, id=-1, pin="1"), Board(20, 3, 100, id=-2)]
         self.config = config
         self.next_board_id = 1
 
@@ -59,14 +62,8 @@ class KalahaServer(QBalancedServer):
         """Check if player was connected to any board.
         If so, notify their opponent and remove board.
         """
-        board = self.get_board_by_player(player)
-        if board:
-            board.timer.stop()
-            opponent = board.get_opponent(player)
-            if opponent is not None and opponent.is_connected():
-                opponent.opponent_disconnected()
-            self.boards.remove(board)
-            self.logger.info(f"Board {board.id} removed")
+        self.on_player_left(player)
+        self.logger.info(f"Player {player.id()} disconnected")
 
     @Slot(Player, bytes)
     def on_message(self, player: Player, data: bytes) -> None:
@@ -98,12 +95,36 @@ class KalahaServer(QBalancedServer):
                         else:
                             player.error("Invalid pin code")
                         return
-                player.error(f"Board {id} does not exists")
+                player.error(f"B{id} does not exists")
+            case "leave_board":
+                self.on_player_left(player)
+                if player.is_connected():
+                    player.board_left()
             case "create_board":
                 self.create_board(player, Board.deserialize(message.get("board")))
             case "get_boards":
                 player.available_boards([board.safe_serialize() for board in self.boards],
                                         self.config.max_boards != len(self.boards))
+
+    @Slot(Player)
+    def on_player_left(self, player: Player) -> None:
+        """Handle player disconnection."""
+        board = self.get_board_by_player(player)
+        if board:
+            board.game_over = True
+            board.timer.stop()
+            # get opponent before disconnecting player
+            opponent = board.get_opponent(player)
+            board.disconnect_player(player)
+            if opponent is not None and opponent.is_connected():
+                opponent.opponent_disconnected()
+                board.disconnect_player(opponent)
+                if self.config.remove_boards:
+                    self.boards.remove(board)
+                    self.logger.info(f"B{board.id} removed")
+                else:
+                    board.default()
+                    self.logger.info(f"B{board.id} reset")
 
     @Slot(Player)
     def get_board_by_player(self, player: Player) -> Board:
@@ -115,8 +136,12 @@ class KalahaServer(QBalancedServer):
     @Slot(Player, dict)
     def write(self, player: Player, data: dict):
         """Send data to client."""
-        data = json.dumps(data).encode()
-        super().write(player, data)
+        if player.is_connected():
+            self.logger.debug(f"P{player.id()}: Sending message: {data}")
+            data = json.dumps(data).encode()
+            super().write(player, data)
+        else:
+            self.logger.error(f"P{player.id()}: Player is not connected, cannot send message: {data}")
 
     @Slot(dict)
     def write_all(self, data: dict):

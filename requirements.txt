@@ -1,5 +1,5 @@
 coloredlogs
 PyQt5
 qtpy
-QtPyNetwork
+QtPyNetwork>=0.7.0
 qrainbowstyle

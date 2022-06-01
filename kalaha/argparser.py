@@ -56,6 +56,8 @@ def get_parser():
                                help="minimum amount of seconds to wait for a turn")
     server_parser.add_argument("-TT", "--max-timeout", type=int, default=100,
                                help="maximum amount of seconds to wait for a turn")
+    server_parser.add_argument("-r", "--remove-boards", action="store_true",
+                               help="remove boards on game over")
 
     client_parser = subparsers.add_parser(
         "client",
@@ -104,11 +106,13 @@ def parse_args(args: list):
         args.max_boards = int(os.getenv("MAX_BOARDS", args.max_boards))
         args.min_timeout = int(os.getenv("MIN_TIMEOUT", args.min_timeout))
         args.max_timeout = int(os.getenv("MAX_TIMEOUT", args.max_timeout))
+        args.remove_boards = str(os.getenv("REMOVE_BOARDS", args.remove_boards)).lower() in ("true", "1", "t")
     elif args.mode == "client":
         args.minimax_depth = int(os.getenv("MINIMAX_DEPTH", args.minimax_depth))
         args.auto_play = str(os.getenv("AUTO_PLAY", args.auto_play)).lower() in ("true", "1", "t")
         args.auto_play_delay = int(os.getenv("AUTO_PLAY_DELAY", args.auto_play_delay))
         args.alpha_beta = str(os.getenv("ALPHA_BETA", args.alpha_beta)).lower() in ("true", "1", "t")
-        args.iterative_deepening = str(os.getenv("ITERATIVE_DEEPENING", args.iterative_deepening)).lower() in ("true", "1", "t")
+        args.iterative_deepening = str(os.getenv("ITERATIVE_DEEPENING",
+                                                 args.iterative_deepening)).lower() in ("true", "1", "t")
         args.highlight_moves = str(os.getenv("HIGHLIGHT_MOVES", args.highlight_moves)).lower() in ("true", "1", "t")
     return args

@@ -36,7 +36,7 @@ docker-compose up
 
 ### Human player
 
-Start client and connect to `127.0.0.1:20202`
+Start client and connect with server IP address and port autofilled.
 ```shell
 python -m kalaha client -H 127.0.0.1 -p 20202
 ```
@@ -45,25 +45,29 @@ python -m kalaha client -H 127.0.0.1 -p 20202
 
 Auto player can be configured via in-game GUI or command arguments. __Note: You will not be able to make moves manually.__
 
-Start client, connect to `127.0.0.1:20202` and enable autoplay.
+Start client, connect to server and enable autoplay.
 This command configures minimax algorithm to search for best move in tree of depth `4`.
 Delay of auto move will be `5` seconds.
 ```shell
-python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4
+python -m kalaha client -ap -apd 5 -md 4
 ```
-You can disale alpha-beta pruning by passing `-ab` argument.
+You can enable alpha-beta pruning by passing `-ab` argument.
 ```shell
-python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4 -ab
+python -m kalaha client -ap -apd 5 -md 4 -ab
 ```
 You can enable iterative deepening by passing `-id` argument.
 ```shell
-python -m kalaha client -H 127.0.0.1 -p 20202 -ap -apd 5 -md 4 -id
+python -m kalaha client -ap -apd 5 -md 4 -id
+```
+To enable move highlighting, pass `-hm` argument.
+```shell
+python -m kalaha client -hm -md 4
 ```
 
 ## FAQ
 
 ### What game modes are available?
-Human vs. Human, Human vs. AI, AI vs. AI
+Human vs. Human, Human vs. Auto player, Auto player vs. Auto player.
 
 ### Is input validation done on the server side or client side?
 Every move including pit selection is validated on the server side.

@@ -9,7 +9,7 @@
   - Use Python 3.10 feature - pattern matching
   - Change Dockerfile base image to `python:3.10-slim`
   - Optimize game engine code
-  - Use `QBalancedServer` instead of `QThreadedServer`
+  - Bump `QtPyNetwork` to 0.7.0
   - Add GitHub Actions for release and deploy
 
 - 0.2.0:

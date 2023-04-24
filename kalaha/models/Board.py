@@ -54,6 +54,10 @@ class Board(QObject):
 
     @Slot(Player)
     def connect_player(self, player: Player):
+        if self.game_over:
+            if self.player_one is None and self.player_two is None:
+                self.default()
+
         if not self.players_connected():
             player.board_joined(self.id)
             if self.player_one is None or not self.player_one.is_connected():
@@ -130,21 +134,16 @@ class Board(QObject):
             else:
                 # check if last stone was put in the empty pit which is in player's allowed range
                 text = "Your opponent's turn!"
+                print(f"Pit {pit_index} has {self.board[pit_index]} stones")
                 if self.board[pit_index] == 1:
-                    opposite_hole_index = self.board_size * 2 - pit_index
-                    opposite_hole_stones = self.board[opposite_hole_index]
+                    opposite_pit_index = len(self.board) - 2 - pit_index
+                    opposite_hole_stones = self.board[opposite_pit_index]
 
-                    if self.current_player is self.player_one and pit_index in self.player_one.allowed_pits:
-                        self.board[self.player_one.base_pit] += opposite_hole_stones
-                        self.board[opposite_hole_index] = 0
-                        if opposite_hole_stones > 0:
-                            text = f"Great choice! You get additional {opposite_hole_stones} stones!"
-
-                    elif self.current_player is self.player_two and pit_index in self.player_two.allowed_pits:
-                        self.board[self.player_two.base_pit] += opposite_hole_stones
-                        self.board[opposite_hole_index] = 0
-                        if opposite_hole_stones > 0:
-                            text = f"Great choice! You get additional {opposite_hole_stones} stones!"
+                    if pit_index in self.current_player.allowed_pits and opposite_hole_stones > 0:
+                        self.board[self.current_player.base_pit] += opposite_hole_stones + 1
+                        self.board[opposite_pit_index] = 0
+                        self.board[pit_index] = 0
+                        text = f"Great choice! You get additional {opposite_hole_stones + 1} stones!"
 
                 if not self.check_game_over():
                     self.update_boards()
@@ -190,6 +189,8 @@ class Board(QObject):
             else:
                 self.player_one.you_tied()
                 self.player_two.you_tied()
+            self.disconnect_player(self.player_one)
+            self.disconnect_player(self.player_two)
         return self.game_over
 
     @Slot()

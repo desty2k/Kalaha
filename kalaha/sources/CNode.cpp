@@ -28,10 +28,16 @@ void CNode::make_move(int pit_index) {
     // last stone in player's base, do not change player
     if (pit_index != (board.size() / (2 - player) - 1)) {
         if (board[pit_index] == 1) {
-            int opposite_hole_index = board.size() - 2 - pit_index;
+            int opposite_pit_index = board.size() - pit_index - 2;
+
             if (std::find(players_ranges[player].begin(), players_ranges[player].end(), pit_index) != players_ranges[player].end()) {
-                board[(board.size()) / (2 - player) - 1] += board[opposite_hole_index];
-                board[opposite_hole_index] = 0;
+                // check if opposite hole is not empty
+                if (board[opposite_pit_index] != 0) {
+                    // add stones to player's base
+                    board[(board.size()) / (2 - player) - 1] += board[opposite_pit_index] + 1;
+                    board[opposite_pit_index] = 0;
+                    board[pit_index] = 0;
+                }
             }
         }
         player = (player + 1) % 2;
